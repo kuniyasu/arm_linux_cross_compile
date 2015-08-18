@@ -1,13 +1,15 @@
-This ARM cross compiler tool chain generate script.
+This is ARM cross compiler tool chain generate script.
 
 It is necessary makeinfo command and some tools.
 Please insall texinfo.
+
 >yum install texinfo
 
 After install texinfo,
 
 git pull
-./shell/create_cross_env.bash
+
+>./shell/create_cross_env.bash
 
 This intallation script is using.
 GNU binutils-2.25
