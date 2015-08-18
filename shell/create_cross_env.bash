@@ -2,6 +2,7 @@
 
 TARGET=arm-unknown-linux-gnueabihf
 MAKE_OPT=-j8
+LINUX_DEFCONFIG=socfpga_defconfig
 
 BINUTILS_VER=2.25
 GCC_VER=5.2.0
@@ -77,7 +78,7 @@ function install_binutils(){
   popd
 }
 
-function install_bootstrap(){
+function install_bootstrap_gcc(){
   if [ ! -d build ]; then
     mkdir build
   fi
@@ -127,6 +128,79 @@ function install_bootstrap(){
   cd ..
 }
 
+install_bootstrap_linux(){
+  if [ ! -d build ]; then
+    mkdir build
+  fi
+
+  cd build
+
+    tar zxf ../download/$LINUX_NAME.tar.gz
+
+    mv $LINUX_NAME build0-$LINUX_NAME
+
+    cd build0-$LINUX_NAME
+
+      make ARCH=arm $LINUX_DEFCONFIG
+      make ARCH=arm headers_check
+
+      make ARCH=arm \
+      CROSS_COMPILE=$TARGET- \
+      INSTALL_HDR_PATH=$PREFIX/$TARGET/usr \
+      headers_install \
+
+    cd ..
+  cd ..
+}
+
+install_bootstrap_glibc(){
+  if [ ! -d build ]; then
+    mkdir build
+  fi
+
+  if [ ! -d build/build0-$GLIBC_NAME ]; then
+    mkdir build/build0-$GLIBC_NAME
+  fi
+
+  cd build
+    if [ -d $GLIBC_NAME ]; then
+      rm -rf $GLIBC_NAME
+    fi
+
+    tar zxf ../download/$GLIBC_NAME.tar.gz
+
+    cd build0-$GLIBC_NAME
+
+      CC=$TARGET-gcc \
+      CXX=$TARGET-g++ \
+      RANLIB=$TARGET-ranlib \
+      AS=$TARGET-as \
+      ../$GLIBC_NAME/configure \
+      --build=$MACHTYPE \
+      --host=$TARGET \
+      --target=$TARGET \
+      libc_cv_forced_unwind=yes \
+      libc_cv_ctors_header=yes \
+      libc_cv_c_cleanup=yes \
+      --prefix=/usr \
+      --with-headers=$PREFIX/$TARGET/usr/include \
+      --disable-multilib \
+      --enable-threads=posix \
+      --config-cache
+
+      make $MAKE_OPT
+      make install install_root=$PREFIX/$TARGET
+    cd ..
+  cd ..
+
+  if [ -d $PREFIX/$TARGET/usr/sys-include ]; then
+    rm -rf $PREFIX/$TARGET/usr/sys-include
+  fi
+
+}
+
 download_files
 install_binutils
-install_bootstrap
+install_bootstrap_gcc
+install_bootstrap_linux
+install_bootstrap_glibc
