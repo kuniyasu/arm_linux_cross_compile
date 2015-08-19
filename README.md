@@ -5,11 +5,11 @@ Please insall texinfo.
 
 >yum install texinfo
 
-After install texinfo,
-
-git pull
+After install texinfo, do git pull or git clone
 
 >./shell/create_cross_env.bash
+
+is cross tool chain script.
 
 This intallation script is using.
 GNU binutils-2.25
